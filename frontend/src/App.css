@@ -1,0 +1,11 @@
+body {
+  padding: 2em;
+  font-size: large;
+}
+
+.word {
+  padding: 0 0.2em;
+}
+.word_active {
+  background: #f0f8ff;
+}
