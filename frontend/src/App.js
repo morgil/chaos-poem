@@ -105,6 +105,7 @@ class Word extends React.Component {
             // contents of new word land in object over there, clear this one again
             this._updateWord(' ');
         } else {
+            // TODO sollen Splits überhaupt möglich sein?
             let split_word = newWord.split(' ');
             if (split_word.length > 1) {
                 //this.splitIsHappening = true;
