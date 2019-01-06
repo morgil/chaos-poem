@@ -1,7 +1,6 @@
 import React, {Component} from 'react';
 import './App.css';
 import ContentEditable from 'react-sane-contenteditable';
-import * as ReactDOM from 'react-dom';
 
 let poem = [
     {word: 'Lorem', id: '' + 1},
@@ -19,6 +18,7 @@ class Word extends React.Component {
             word: props.word,
             previousWord: props.word,
             active: false,
+            checkChangesAfterBlur: false
         };
         this.handleClick = this.handleClick.bind(this);
         this.handleChange = this.handleChange.bind(this);
@@ -40,7 +40,8 @@ class Word extends React.Component {
             />
     }
 
-    componentDidUpdate(prevProps) {
+    /*componentDidUpdate(prevProps) {
+        // this might be useful for automatic selection of a word, but has no effect now
         if (prevProps.active !== this.props.active) {
             if (this.props.active) {
                 setTimeout(() => {
@@ -48,11 +49,12 @@ class Word extends React.Component {
                 }, 150);
             }
         }
-    }
+    }*/
 
     _updateWord(new_word) {
         this.setState({
-            word: new_word
+            word: new_word,
+            previousWord: new_word
         });
         this.editableElementRef.setState({value: new_word});
         this.editableElementRef._element.innerText = new_word;
@@ -62,42 +64,48 @@ class Word extends React.Component {
         this.props.parent.onWordSelected(this.props.identifier);
     }
 
-    handleChange(event, value) {
-        this.setState({
-            word: value
-        });
+    handleChange(event, newWord) {
+        if (this.state.checkChangesAfterBlur) {
+            this.checkForChanges(newWord);
+        }
+        this.setState( { checkChangesAfterBlur: false });
     }
 
     handleFocus() {
         if (!this.state.active) {
             this.props.parent.onWordSelected(this.props.identifier);
         }
-        /*setTimeout(
+        setTimeout(
             () => document.execCommand('selectAll', false, null),
-            150
-        );*/
+            0
+        );
     }
 
-    handleBlur(event) {
-        if (this.state.word === this.state.previousWord) {
+    handleBlur() {
+        this.setState( { checkChangesAfterBlur: true });
+        this.props.parent.unselectWord(this.props.identifier);
+    }
+
+    checkForChanges(newWord) {
+        if (newWord === this.state.word) {
             // no change, pass
-        } else if (this.state.previousWord !== ' ' && this.state.word === '') {
+        } else if (this.state.word !== ' ' && newWord === '') {
             // word got deleted
             this.props.parent.deleteWord(this.props.identifier);
-        } else if (this.state.previousWord === ' ' && this.state.word === '') {
+        } else if (this.state.word === ' ' && newWord === '') {
             // only a truncated space
             this._updateWord(' ');
-        } else if (this.state.previousWord === ' ' && this.state.word !== '') {
+        } else if (this.state.word === ' ' && newWord !== '') {
             // space was edited to create a new word
             // TODO replace with sending new word to server
             this.props.parent.addNewWordAfter(this.props.identifier, {
-                word: this.state.word,
+                word: newWord,
                 id: 'ins' + parseInt(Math.random() * 65536)
             });
             // contents of new word land in object over there, clear this one again
             this._updateWord(' ');
         } else {
-            let split_word = this.state.word.split(' ');
+            let split_word = newWord.split(' ');
             if (split_word.length > 1) {
                 //this.splitIsHappening = true;
                 this._updateWord(split_word[0]);
@@ -108,15 +116,12 @@ class Word extends React.Component {
                 // TODO send changed word to server
             }
         }
-        this.setState((state) => {
-            return {previousWord: this.state.word};
-        });
-        this.props.parent.unselectWord(this.props.identifier);
     }
 
     render() {
         let wordClass = 'word';
         if (this.state.previousWord === ' ') {
+            //TODO add additional spaces as soon as a space is edited
             wordClass += ' word_space'
         }
         if (this.state.active) {
