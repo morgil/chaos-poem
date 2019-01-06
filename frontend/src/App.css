@@ -4,8 +4,11 @@ body {
 }
 
 .word {
-  padding: 0 0.2em;
+  /*padding: 0 0.2em;*/
 }
+
+
+
 .word_active {
   background: #f0f8ff;
 }
