@@ -36,7 +36,7 @@ class Word extends React.Component {
     }
 
     setActive(active) {
-        this.setState(state => ({
+        this.setState(() => ({
             active: active
         }));
     }
@@ -61,7 +61,7 @@ class Word extends React.Component {
         );
     }
 
-    handleBlur(event, value) {
+    handleBlur() {
         this.props.parent.onWordSelected(undefined);
     }
 
